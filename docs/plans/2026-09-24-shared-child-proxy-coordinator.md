@@ -1,15 +1,4 @@
-# Shared Child Proxy Coordinator Implementation Plan
-
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
-**Goal:** Keep numbered OAuth child-facing auth/models and the canonical loopback listener alive until the final in-process root closes, while preserving failover for independent roots and same-session rehydration.
-
-**Architecture:** A process-scoped coordinator keyed by canonical proxy port manages live root memberships and a single canonical listener/publication. Session-local failover remains session-local. Rehydration supersedes same-session failover ownership without counting the old instance twice. Proxy requests use the current active member's route/refresh context; root shutdown only releases the shared publication after the last member leaves. Foreign-process listeners remain non-publishers; child processes cannot join. Avoid chained per-instance `releaseProxy` callbacks and leaking real OAuth to child-facing auth during handoff.
-
-**Tech Stack:** TypeScript, Node HTTP server, `node:test`, Pi extension API. See `index.ts` (activation near 3930, provisioning near 6300, proxy near 10635, lifecycle near 11240); `test/failover.test.ts` (fixture near 370 and proxy tests near 11440); `test/session-ownership.test.ts`; #72/#73 review context. Follow code-security race-condition/secrets and TDD skills. Never print credentials; assert only auth `type` and route URL.
-
 ---
-
 ### Task 1: Baseline and regression tests
 
 **Files:** Modify `test/failover.test.ts`; optionally `test/session-ownership.test.ts`.
